@@ -1,9 +1,3 @@
-/**
- * Payment Domain Types
- * Defines status constants and types for individual payments
- */
-
-// Payment status constants
 export const PaymentStatus = {
   PENDING: "PENDING",
   ONCHAIN_PAID: "ONCHAIN_PAID",

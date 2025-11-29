@@ -3,7 +3,6 @@
  * Defines resources, prices, and usage metering for x402 payments
  */
 
-// Meter configuration type for 8004 protocol
 export type MeterConfig = {
   price: string;        // Price in asset units (e.g., "1" = 1 USDC)
   asset: string;        // Asset symbol (e.g., "USDC")
@@ -50,4 +49,3 @@ export function getMeter(meterId: string): MeterConfig | undefined {
 export function meterExists(meterId: string): boolean {
   return meterId in meters;
 }
-

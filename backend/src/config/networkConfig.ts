@@ -1,4 +1,4 @@
-import { config } from "./env";
+import { config } from "./env.js";
 
 // Network configuration type
 export type NetworkConfig = {
@@ -17,7 +17,7 @@ export type NetworkConfig = {
   };
 };
 
-// Supported network configurations
+// Supported EVM networks for SnowRail
 const networks: Record<string, NetworkConfig> = {
   avalanche: {
     name: "Avalanche C-Chain",
@@ -30,6 +30,7 @@ const networks: Record<string, NetworkConfig> = {
       decimals: 18,
     },
     stablecoins: {
+      // Mainnet USDC.e on Avalanche
       usdc: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
       usdt: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
     },
@@ -53,12 +54,13 @@ const networks: Record<string, NetworkConfig> = {
 
 // Get current network configuration based on env
 export function getCurrentNetworkConfig(): NetworkConfig {
-  const network = networks[config.network];
-  if (!network) {
+  const net = networks[config.network];
+  if (!net) {
     throw new Error(`Unsupported network: ${config.network}`);
   }
-  return network;
+  return net;
 }
 
 export { networks };
+
 

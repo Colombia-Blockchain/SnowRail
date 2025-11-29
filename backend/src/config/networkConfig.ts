@@ -46,9 +46,25 @@ const networks: Record<string, NetworkConfig> = {
       decimals: 18,
     },
     stablecoins: {
-      // Fuji testnet USDC (test token)
-      usdc: "0x5425890298aed601595a70AB815c96711a31Bc65", // USDC testnet on Fuji
-      usdt: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7", // Placeholder
+      // Fuji testnet token addresses (test tokens)
+      usdc: "0x5425890298aed601595a70AB815c96711a31Bc65", // Test USDC on Fuji
+      usdt: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7", // Test USDT on Fuji
+    },
+  },
+  // Alias for backward compatibility
+  fuji: {
+    name: "Avalanche Fuji Testnet",
+    chainId: 43113,
+    rpcUrl: config.rpcUrls["avalanche-fuji"],
+    explorerUrl: "https://testnet.snowtrace.io",
+    nativeCurrency: {
+      name: "Avalanche",
+      symbol: "AVAX",
+      decimals: 18,
+    },
+    stablecoins: {
+      usdc: "0x5425890298aed601595a70AB815c96711a31Bc65",
+      usdt: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
     },
   },
   polygon: {

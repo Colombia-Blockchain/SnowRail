@@ -1,6 +1,6 @@
 // Prisma schema for SnowRail payroll system
-// Currently using SQLite, can be switched to PostgreSQL for production
-// Note: SQLite doesn't support enums, so status is stored as String
+// SQLite in dev; can be swapped to PostgreSQL in production
+// Status fields are stored as String for SQLite compatibility
 
 datasource db {
   provider = "sqlite"
@@ -12,7 +12,7 @@ generator client {
 }
 
 // Payroll represents a batch of payments
-// Status values: PENDING, ONCHAIN_PAID, RAIL_PROCESSING, PAID, FAILED
+// Allowed status values: PENDING, ONCHAIN_PAID, RAIL_PROCESSING, PAID, FAILED
 model Payroll {
   id        String    @id @default(cuid())
   total     Int
@@ -24,7 +24,7 @@ model Payroll {
 }
 
 // Individual payment within a payroll
-// Status values: PENDING, ONCHAIN_PAID, RAIL_PROCESSING, PAID, FAILED
+// Allowed status values: PENDING, ONCHAIN_PAID, RAIL_PROCESSING, PAID, FAILED
 model Payment {
   id        String   @id @default(cuid())
   payrollId String
@@ -36,4 +36,3 @@ model Payment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-

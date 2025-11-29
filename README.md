@@ -1,5 +1,4 @@
 # SnowRail
-# SnowRail
 
 SnowRail is a treasury orchestrator that connects onchain payments (Avalanche C-Chain) with fiat bank payouts using a Rail-like API, protected by the **x402** protocol for API monetization.
 

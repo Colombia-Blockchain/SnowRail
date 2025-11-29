@@ -1,10 +1,10 @@
 const hre = require("hardhat");
 const { ethers } = hre;
 
-// Dirección del contrato desplegado
+// Deployed contract address
 const TREASURY_ADDRESS = "0xcba2318C6C4d9c98f7732c5fDe09D1BAe12c27be";
 
-// ABI mínimo del contrato
+// Minimal contract ABI
 const TREASURY_ABI = [
   "function owner() view returns (address)",
   "function router() view returns (address)",
@@ -20,97 +20,97 @@ const TREASURY_ABI = [
 ];
 
 async function main() {
-  console.log("🧪 Iniciando pruebas del contrato SnowRailTreasury...\n");
+  console.log("🧪 Starting SnowRailTreasury contract tests...\n");
 
-  // Obtener el signer (tu wallet)
+  // Get the signer (your wallet)
   const [signer] = await ethers.getSigners();
   const signerAddress = await signer.getAddress();
-  console.log(`📝 Wallet conectada: ${signerAddress}`);
+  console.log(`📝 Connected wallet: ${signerAddress}`);
   console.log(`💰 Balance: ${ethers.formatEther(await ethers.provider.getBalance(signerAddress))} AVAX\n`);
 
-  // Conectar al contrato
+  // Connect to the contract
   const treasury = new ethers.Contract(TREASURY_ADDRESS, TREASURY_ABI, signer);
-  console.log(`📄 Contrato: ${TREASURY_ADDRESS}\n`);
+  console.log(`📄 Contract: ${TREASURY_ADDRESS}\n`);
 
-  // 1. Leer información del contrato
-  console.log("1️⃣ Leyendo información del contrato...");
+  // 1. Read contract information
+  console.log("1️⃣ Reading contract information...");
   try {
     const owner = await treasury.owner();
     const router = await treasury.router();
     console.log(`   ✅ Owner: ${owner}`);
     console.log(`   ✅ Router: ${router}`);
-    console.log(`   ${owner.toLowerCase() === signerAddress.toLowerCase() ? "✅ Eres el owner" : "❌ NO eres el owner"}\n`);
+    console.log(`   ${owner.toLowerCase() === signerAddress.toLowerCase() ? "✅ You are the owner" : "❌ You are NOT the owner"}\n`);
   } catch (error) {
-    console.log(`   ❌ Error leyendo contrato: ${error.message}\n`);
+    console.log(`   ❌ Error reading contract: ${error.message}\n`);
   }
 
-  // 2. Probar requestPayment (no requiere ser owner, solo emite evento)
-  console.log("2️⃣ Probando requestPayment...");
+  // 2. Test requestPayment (doesn't require owner, only emits event)
+  console.log("2️⃣ Testing requestPayment...");
   try {
-    // Usar una dirección de prueba como payee (dirección válida)
-    // Usando una dirección conocida válida (Trader Joe Router como ejemplo)
-    const testPayee = "0x60aE616a2155Ee3d9A68541Ba4544862310933d4"; // Dirección válida de ejemplo
-    const testAmount = ethers.parseEther("1.0"); // 1 token (asumiendo 18 decimals)
-    const testToken = ethers.getAddress("0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E"); // USDC en Avalanche (6 decimals)
+    // Use a test address as payee (valid address)
+    // Using a known valid address (Trader Joe Router as example)
+    const testPayee = "0x60aE616a2155Ee3d9A68541Ba4544862310933d4"; // Example valid address
+    const testAmount = ethers.parseEther("1.0"); // 1 token (assuming 18 decimals)
+    const testToken = ethers.getAddress("0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E"); // USDC on Avalanche (6 decimals)
     
-    console.log(`   📤 Enviando requestPayment...`);
+    console.log(`   📤 Sending requestPayment...`);
     console.log(`      Payee: ${testPayee}`);
     console.log(`      Amount: ${ethers.formatEther(testAmount)} tokens`);
     console.log(`      Token: ${testToken}`);
     
     const tx = await treasury.requestPayment(testPayee, testAmount, testToken);
-    console.log(`   ⏳ Transacción enviada: ${tx.hash}`);
+    console.log(`   ⏳ Transaction sent: ${tx.hash}`);
     
     const receipt = await tx.wait();
-    console.log(`   ✅ Transacción confirmada en bloque: ${receipt.blockNumber}`);
-    console.log(`   💸 Gas usado: ${receipt.gasUsed.toString()}\n`);
+    console.log(`   ✅ Transaction confirmed in block: ${receipt.blockNumber}`);
+    console.log(`   💸 Gas used: ${receipt.gasUsed.toString()}\n`);
   } catch (error) {
     console.log(`   ❌ Error: ${error.message}\n`);
   }
 
-  // 3. Probar getTokenBalance (función view, no requiere transacción)
-  console.log("3️⃣ Probando getTokenBalance...");
+  // 3. Test getTokenBalance (view function, doesn't require transaction)
+  console.log("3️⃣ Testing getTokenBalance...");
   try {
-    const usdcAddress = "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E"; // USDC en Avalanche
+    const usdcAddress = "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E"; // USDC on Avalanche
     const balance = await treasury.getTokenBalance(usdcAddress);
-    console.log(`   ✅ Balance de USDC en treasury: ${balance.toString()} (raw)`);
-    console.log(`   💰 Balance formateado: ${ethers.formatUnits(balance, 6)} USDC\n`); // USDC tiene 6 decimals
+    console.log(`   ✅ USDC balance in treasury: ${balance.toString()} (raw)`);
+    console.log(`   💰 Formatted balance: ${ethers.formatUnits(balance, 6)} USDC\n`); // USDC has 6 decimals
   } catch (error) {
     console.log(`   ❌ Error: ${error.message}\n`);
   }
 
-  // 4. Probar authorizeSwap (solo owner puede hacerlo)
-  console.log("4️⃣ Probando authorizeSwap (solo owner)...");
+  // 4. Test authorizeSwap (only owner can do this)
+  console.log("4️⃣ Testing authorizeSwap (owner only)...");
   try {
     const fromToken = "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E"; // USDC
-    const toToken = "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"; // USDT en Avalanche
+    const toToken = "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"; // USDT on Avalanche
     const maxAmount = ethers.parseUnits("1000", 6); // 1000 USDC (6 decimals)
     
-    console.log(`   📤 Autorizando swap...`);
+    console.log(`   📤 Authorizing swap...`);
     console.log(`      From: ${fromToken} (USDC)`);
     console.log(`      To: ${toToken} (USDT)`);
     console.log(`      Max Amount: ${ethers.formatUnits(maxAmount, 6)} USDC`);
     
     const tx = await treasury.authorizeSwap(fromToken, toToken, maxAmount);
-    console.log(`   ⏳ Transacción enviada: ${tx.hash}`);
+    console.log(`   ⏳ Transaction sent: ${tx.hash}`);
     
     const receipt = await tx.wait();
-    console.log(`   ✅ Swap autorizado en bloque: ${receipt.blockNumber}`);
-    console.log(`   💸 Gas usado: ${receipt.gasUsed.toString()}`);
+    console.log(`   ✅ Swap authorized in block: ${receipt.blockNumber}`);
+    console.log(`   💸 Gas used: ${receipt.gasUsed.toString()}`);
     
-    // Verificar que se guardó correctamente
+    // Verify it was saved correctly
     const allowance = await treasury.swapAllowances(fromToken, toToken);
-    console.log(`   ✅ Allowance guardada: ${ethers.formatUnits(allowance, 6)} USDC\n`);
+    console.log(`   ✅ Allowance saved: ${ethers.formatUnits(allowance, 6)} USDC\n`);
   } catch (error) {
     if (error.message.includes("Not owner")) {
-      console.log(`   ⚠️  No eres el owner, esta función requiere permisos de owner\n`);
+      console.log(`   ⚠️  You are not the owner, this function requires owner permissions\n`);
     } else {
       console.log(`   ❌ Error: ${error.message}\n`);
     }
   }
 
-  // 5. Verificar swapAllowances
-  console.log("5️⃣ Verificando swapAllowances...");
+  // 5. Verify swapAllowances
+  console.log("5️⃣ Verifying swapAllowances...");
   try {
     const fromToken = "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E"; // USDC
     const toToken = "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"; // USDT
@@ -120,8 +120,8 @@ async function main() {
     console.log(`   ❌ Error: ${error.message}\n`);
   }
 
-  console.log("✨ Pruebas completadas!");
-  console.log(`\n🔍 Ver transacciones en Snowtrace:`);
+  console.log("✨ Tests completed!");
+  console.log(`\n🔍 View transactions on Snowtrace:`);
   console.log(`   https://snowtrace.io/address/${TREASURY_ADDRESS}`);
 }
 

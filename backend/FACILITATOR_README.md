@@ -1,70 +1,70 @@
 # x402 Facilitator Server
 
-Servidor facilitator real para validar y ejecutar pagos x402 on-chain en Avalanche.
+Real facilitator server for validating and executing x402 payments on-chain on Avalanche.
 
-## Características
+## Features
 
-- ✅ Validación de payment proofs on-chain
-- ✅ Verificación de firmas EIP-3009
-- ✅ Settlement de pagos on-chain (gasless)
-- ✅ Compatible con MerchantExecutor
-- ✅ Soporte para Avalanche Fuji testnet
-- ✅ Health checks y logging
+- ✅ On-chain payment proof validation
+- ✅ EIP-3009 signature verification
+- ✅ On-chain payment settlement (gasless)
+- ✅ Compatible with MerchantExecutor
+- ✅ Support for Avalanche Fuji testnet
+- ✅ Health checks and logging
 
-## Instalación y Uso
+## Installation and Usage
 
-### 1. Configurar Variables de Entorno
+### 1. Configure Environment Variables
 
-En tu archivo `.env`:
+In your `.env` file:
 
 ```bash
 # Network configuration
 NETWORK=fuji
 
-# RPC URL para Avalanche Fuji testnet
+# RPC URL for Avalanche Fuji testnet
 RPC_URL_AVALANCHE=https://api.avax-test.network/ext/bc/C/rpc
 
-# Private key para ejecutar settlements (opcional, solo si quieres que el facilitator ejecute pagos)
-PRIVATE_KEY=0xTU_PRIVATE_KEY_AQUI
+# Private key to execute settlements (optional, only if you want the facilitator to execute payments)
+PRIVATE_KEY=0xYOUR_PRIVATE_KEY_HERE
 
-# Puerto del facilitator (opcional, default: 3001)
+# Facilitator port (optional, default: 3001)
 FACILITATOR_PORT=3001
 ```
 
-### 2. Compilar y Ejecutar
+### 2. Compile and Run
 
 ```bash
-# Compilar TypeScript
+# Compile TypeScript
 npm run build
 
-# Ejecutar facilitator
+# Run facilitator
 npm run facilitator
 
-# O en modo desarrollo (recompila y ejecuta)
+# Or in development mode (recompiles and runs)
 npm run facilitator:dev
 ```
 
-El facilitator estará disponible en `http://localhost:3001`
+The facilitator will be available at `http://localhost:3001`
 
-### 3. Configurar el Backend para Usar el Facilitator Local
+### 3. Configure Backend to Use Local Facilitator
 
-En el `.env` del backend:
+In the backend `.env`:
 
 ```bash
-# Usar facilitator local
+# Use local facilitator
 X402_FACILITATOR_URL=http://localhost:3001
 ```
 
 ## Endpoints
 
 ### GET /health
-Health check del facilitator
+Health check for the facilitator
 
 ```bash
 curl http://localhost:3001/health
 ```
 
-**Respuesta:**
+**Response:**
 ```json
 {
   "status": "healthy",
@@ -74,7 +74,7 @@ curl http://localhost:3001/health
 ```
 
 ### POST /validate
-Valida un payment proof
+Validate a payment proof
 
 ```bash
 curl -X POST http://localhost:3001/validate \
@@ -88,7 +88,7 @@ curl -X POST http://localhost:3001/validate \
   }'
 ```
 
-**Respuesta exitosa:**
+**Success response:**
 ```json
 {
   "valid": true,
@@ -98,7 +98,7 @@ curl -X POST http://localhost:3001/validate \
 ```
 
 ### POST /verify
-Verifica un pago (compatible con MerchantExecutor)
+Verify a payment (MerchantExecutor compatible)
 
 ```bash
 curl -X POST http://localhost:3001/verify \
@@ -111,7 +111,7 @@ curl -X POST http://localhost:3001/verify \
 ```
 
 ### POST /settle
-Ejecuta el settlement on-chain (requiere PRIVATE_KEY)
+Execute on-chain settlement (requires PRIVATE_KEY)
 
 ```bash
 curl -X POST http://localhost:3001/settle \
@@ -123,7 +123,7 @@ curl -X POST http://localhost:3001/settle \
   }'
 ```
 
-**Respuesta exitosa:**
+**Success response:**
 ```json
 {
   "success": true,
@@ -133,12 +133,12 @@ curl -X POST http://localhost:3001/settle \
 }
 ```
 
-## Arquitectura
+## Architecture
 
 ```
 ┌─────────────┐
-│   Cliente   │
-│  (Agente)   │
+│   Client    │
+│  (Agent)   │
 └──────┬──────┘
        │
        │ X-PAYMENT header
@@ -155,7 +155,7 @@ curl -X POST http://localhost:3001/settle \
 │  Server     │
 └──────┬──────┘
        │
-       │ Verifica on-chain
+       │ Validates on-chain
        ▼
 ┌─────────────┐
 │  Avalanche  │
@@ -163,54 +163,53 @@ curl -X POST http://localhost:3001/settle \
 └─────────────┘
 ```
 
-## Validación de Pagos
+## Payment Validation
 
-El facilitator valida:
+The facilitator validates:
 
-1. **Formato del proof**: Debe contener `from`, `to`, `value`, `signature`
-2. **Monto**: Debe ser igual o mayor al precio del meter
-3. **Firma**: Verifica la firma EIP-3009 (simplificada para testnet)
-4. **Nonce**: Previene replay attacks (implementación básica)
+1. **Proof format**: Must contain `from`, `to`, `value`, `signature`
+2. **Amount**: Must be equal to or greater than the meter price
+3. **Signature**: Verifies EIP-3009 signature (simplified for testnet)
+4. **Nonce**: Prevents replay attacks (basic implementation)
 
-## Settlement On-Chain
+## On-Chain Settlement
 
-Si `PRIVATE_KEY` está configurado, el facilitator puede ejecutar `transferWithAuthorization` on-chain:
+If `PRIVATE_KEY` is configured, the facilitator can execute `transferWithAuthorization` on-chain:
 
-- Ejecuta la transacción usando la private key configurada
-- Retorna el hash de la transacción
-- El usuario no paga gas (gasless)
+- Executes the transaction using the configured private key
+- Returns the transaction hash
+- User doesn't pay gas (gasless)
 
-## Desarrollo vs Producción
+## Development vs Production
 
 ### Testnet (Fuji)
-- Validación de firmas simplificada
-- Acepta `demo-token` para pruebas
-- No requiere verificación estricta de nonces
+- Simplified signature validation
+- Accepts `demo-token` for testing
+- Doesn't require strict nonce verification
 
-### Producción (Mainnet)
-- Verificación completa de firmas EIP-712
-- Verificación de nonces contra base de datos
-- Validación estricta de todos los campos
+### Production (Mainnet)
+- Full EIP-712 signature verification
+- Nonce verification against database
+- Strict validation of all fields
 
 ## Troubleshooting
 
-### El facilitator no inicia
-- Verifica que el puerto 3001 esté disponible
-- Revisa los logs para errores de configuración
+### Facilitator won't start
+- Verify that port 3001 is available
+- Check logs for configuration errors
 
-### Validación falla
-- Verifica que el RPC URL esté correcto
-- Asegúrate de que el proof tenga el formato correcto
-- Revisa que el monto sea suficiente
+### Validation fails
+- Verify that the RPC URL is correct
+- Ensure the proof has the correct format
+- Check that the amount is sufficient
 
-### Settlement falla
-- Verifica que `PRIVATE_KEY` esté configurado
-- Asegúrate de tener AVAX para gas en la wallet
-- Revisa que el contrato ERC20 soporte `transferWithAuthorization`
+### Settlement fails
+- Verify that `PRIVATE_KEY` is configured
+- Ensure you have AVAX for gas in the wallet
+- Check that the ERC20 contract supports `transferWithAuthorization`
 
-## Referencias
+## References
 
 - [x402 Protocol Documentation](https://x402.org)
 - [Avalanche Build Docs](https://build.avax.network)
 - [EIP-3009 Specification](https://eips.ethereum.org/EIPS/eip-3009)
-

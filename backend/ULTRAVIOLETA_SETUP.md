@@ -1,48 +1,48 @@
-# x402 Facilitator - Integración Real
+# x402 Facilitator - Real Integration
 
-Este documento explica cómo usar el facilitator real implementado para validar y ejecutar pagos x402 on-chain en Avalanche, o cómo configurar el facilitator de Ultravioleta como alternativa.
+This document explains how to use the real facilitator implementation to validate and execute x402 payments on-chain on Avalanche, or how to configure the Ultravioleta facilitator as an alternative.
 
-## Opciones de Facilitator
+## Facilitator Options
 
-### Opción 1: Facilitator Local (Recomendado para desarrollo)
+### Option 1: Local Facilitator (Recommended for development)
 
-Usa el facilitator implementado localmente:
+Use the locally implemented facilitator:
 
 ```bash
-# 1. Iniciar el facilitator
+# 1. Start the facilitator
 npm run facilitator
 
-# 2. Configurar en .env del backend
+# 2. Configure in backend .env
 X402_FACILITATOR_URL=http://localhost:3001
 ```
 
-Ver [FACILITATOR_README.md](./FACILITATOR_README.md) para más detalles.
+See [FACILITATOR_README.md](./FACILITATOR_README.md) for more details.
 
-### Opción 2: Ultravioleta Facilitator (Producción)
+### Option 2: Ultravioleta Facilitator (Production)
 
-Usa el facilitator de Ultravioleta para producción:
+Use the Ultravioleta facilitator for production:
 
 ```bash
 # Ultravioleta Facilitator URL (gasless payments)
-# Para testnet (Fuji):
+# For testnet (Fuji):
 X402_FACILITATOR_URL=https://facilitator.ultravioleta.xyz
-# O la URL específica de testnet que te proporcionen
+# Or the specific testnet URL they provide
 ```
 
-### 2. Verificar el Facilitator
+### 2. Verify the Facilitator
 
-Puedes verificar el estado del facilitator con:
+You can verify the facilitator status with:
 
 ```bash
 curl http://localhost:3000/api/facilitator/health
 ```
 
-## Cómo Funciona
+## How It Works
 
-### Flujo de Pago
+### Payment Flow
 
-1. **Cliente solicita recurso protegido** sin `X-PAYMENT` header
-2. **Servidor responde con 402** incluyendo información de metering:
+1. **Client requests protected resource** without `X-PAYMENT` header
+2. **Server responds with 402** including metering information:
    ```json
    {
      "error": "PAYMENT_REQUIRED",
@@ -57,65 +57,64 @@ curl http://localhost:3000/api/facilitator/health
    }
    ```
 
-3. **Cliente obtiene payment proof** del facilitator de Ultravioleta (gasless)
-4. **Cliente envía request con** `X-PAYMENT: <proof>` header
-5. **Servidor valida el proof** con el facilitator de Ultravioleta
-6. **Si es válido**, el request procede normalmente
+3. **Client obtains payment proof** from Ultravioleta facilitator (gasless)
+4. **Client sends request with** `X-PAYMENT: <proof>` header
+5. **Server validates the proof** with Ultravioleta facilitator
+6. **If valid**, the request proceeds normally
 
-### Validación
+### Validation
 
-El sistema valida los pagos de la siguiente manera:
+The system validates payments as follows:
 
-- **Desarrollo**: Si `X402_FACILITATOR_URL` contiene "mock", acepta `demo-token`
-- **Producción**: Valida el proof contra el facilitator de Ultravioleta
+- **Development**: If `X402_FACILITATOR_URL` contains "mock", accepts `demo-token`
+- **Production**: Validates the proof against Ultravioleta facilitator
 
 ## Endpoints
 
 ### POST /api/payroll/execute
-**Protegido con x402**
+**Protected with x402**
 
-Requiere `X-PAYMENT` header con un payment proof válido del facilitator.
+Requires `X-PAYMENT` header with a valid payment proof from the facilitator.
 
-**Sin header:**
+**Without header:**
 ```bash
 curl -X POST http://localhost:3000/api/payroll/execute
-# Respuesta: 402 Payment Required
+# Response: 402 Payment Required
 ```
 
-**Con payment proof:**
+**With payment proof:**
 ```bash
 curl -X POST http://localhost:3000/api/payroll/execute \
   -H "X-PAYMENT: <proof-from-ultravioleta>"
-# Respuesta: 200 OK con payroll ejecutado
+# Response: 200 OK with executed payroll
 ```
 
 ### GET /api/facilitator/health
-Verifica el estado del facilitator de Ultravioleta.
+Checks the status of the Ultravioleta facilitator.
 
 ```bash
 curl http://localhost:3000/api/facilitator/health
 ```
 
-## Desarrollo vs Producción
+## Development vs Production
 
-### Desarrollo (Mock)
+### Development (Mock)
 ```bash
 X402_FACILITATOR_URL=https://facilitator.mock
 ```
-- Acepta `X-PAYMENT: demo-token` para pruebas
-- No valida pagos reales
+- Accepts `X-PAYMENT: demo-token` for testing
+- Doesn't validate real payments
 
-### Testnet/Producción (Ultravioleta)
+### Testnet/Production (Ultravioleta)
 ```bash
 X402_FACILITATOR_URL=https://facilitator.ultravioleta.xyz
 ```
-- Valida todos los payment proofs
-- Requiere pagos reales on-chain (gasless)
-- **NOTA**: Actualmente configurado para Fuji testnet
+- Validates all payment proofs
+- Requires real on-chain payments (gasless)
+- **NOTE**: Currently configured for Fuji testnet
 
-## Notas
+## Notes
 
-- El facilitator de Ultravioleta permite pagos **gasless**, el usuario no paga gas fees
-- Los pagos se validan on-chain pero el facilitator cubre los costos de gas
-- El sistema automáticamente detecta si estás usando mock o facilitator real
-
+- The Ultravioleta facilitator allows **gasless** payments, the user doesn't pay gas fees
+- Payments are validated on-chain but the facilitator covers gas costs
+- The system automatically detects if you're using mock or real facilitator

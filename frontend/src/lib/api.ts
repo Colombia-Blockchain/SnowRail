@@ -2,7 +2,7 @@
  * API Client for SnowRail Backend
  */
 
-const API_BASE = "/api";
+const API_BASE = import.meta.env.VITE_API_BASE_URL?.trim() || "/api";
 
 // Types for API responses
 export type MeteringInfo = {
@@ -434,4 +434,3 @@ export async function testContract(paymentToken?: string): Promise<{
     },
   };
 }
-

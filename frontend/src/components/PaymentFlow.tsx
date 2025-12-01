@@ -12,9 +12,7 @@ type PaymentFlowProps = {
 
 type FlowStep = "review" | "getting-proof" | "validating" | "executing" | "success";
 
-// Facilitator URL - integrated in backend server
-// Uses relative path since Vite proxy handles it
-const FACILITATOR_URL = import.meta.env.VITE_FACILITATOR_URL || "/facilitator";
+const FACILITATOR_URL = import.meta.env.VITE_FACILITATOR_URL?.trim() || "/facilitator";
 
 function PaymentFlow({ metering, meterId = "payroll_execute", onSuccess, onCancel }: PaymentFlowProps) {
   const [step, setStep] = useState<FlowStep>("review");

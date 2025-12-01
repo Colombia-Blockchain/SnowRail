@@ -3,8 +3,6 @@
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
   readonly VITE_FACILITATOR_URL?: string;
-  readonly VITE_RAILWAY_API_BASE_URL?: string;
-  readonly VITE_RAILWAY_FACILITATOR_URL?: string;
 }
 
 interface ImportMeta {

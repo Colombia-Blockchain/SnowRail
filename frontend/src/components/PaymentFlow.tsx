@@ -12,9 +12,32 @@ type PaymentFlowProps = {
 
 type FlowStep = "review" | "getting-proof" | "validating" | "executing" | "success";
 
-// Facilitator URL - integrated in backend server
-// Uses relative path since Vite proxy handles it
-const FACILITATOR_URL = import.meta.env.VITE_FACILITATOR_URL || "/facilitator";
+function resolveFacilitatorUrl(): string {
+  const envUrl = import.meta.env.VITE_FACILITATOR_URL?.trim();
+  if (envUrl && envUrl.length > 0) {
+    return envUrl;
+  }
+
+  const railwayUrl =
+    import.meta.env.VITE_RAILWAY_FACILITATOR_URL?.trim() || "";
+
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    const isLocal =
+      host === "localhost" ||
+      host === "127.0.0.1" ||
+      host === "" ||
+      host === "[::1]";
+    if (!isLocal) {
+      return railwayUrl;
+    }
+  }
+
+  // Uses relative path since Vite proxy handles it locally.
+  return "/facilitator";
+}
+
+const FACILITATOR_URL = resolveFacilitatorUrl();
 
 function PaymentFlow({ metering, meterId = "payroll_execute", onSuccess, onCancel }: PaymentFlowProps) {
   const [step, setStep] = useState<FlowStep>("review");

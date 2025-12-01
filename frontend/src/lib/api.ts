@@ -2,7 +2,31 @@
  * API Client for SnowRail Backend
  */
 
-const API_BASE = "/api";
+function resolveApiBase(): string {
+  const envUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+  if (envUrl && envUrl.length > 0) {
+    return envUrl;
+  }
+
+  const railwayUrl = import.meta.env.VITE_RAILWAY_API_BASE_URL?.trim() || "";
+
+  // When running locally we keep the Vite proxy (/api).
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    const isLocal =
+      host === "localhost" ||
+      host === "127.0.0.1" ||
+      host === "" ||
+      host === "[::1]";
+    if (!isLocal) {
+      // Default production backend hosted on Railway (configurable via env).
+      return railwayUrl;
+    }
+  }
+  return "/api";
+}
+
+const API_BASE = resolveApiBase();
 
 // Types for API responses
 export type MeteringInfo = {
@@ -434,4 +458,3 @@ export async function testContract(paymentToken?: string): Promise<{
     },
   };
 }
-

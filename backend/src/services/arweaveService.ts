@@ -1,11 +1,11 @@
 import Arweave from "arweave";
+import type { JWKInterface } from "arweave/node/lib/wallet.js";
 import { logger } from "../utils/logger.js";
-import { config } from "../config/env.js";
+import type { PayrollStatusType } from "../domain/payroll.js";
 
-// Payroll receipt structure for permanent storage on Arweave
-export interface PayrollReceipt {
+export type PayrollReceipt = {
   payrollId: string;
-  status: string;
+  status: PayrollStatusType;
   totalAmount: string;
   currency: string;
   recipientCount: number;
@@ -13,105 +13,110 @@ export interface PayrollReceipt {
   treasuryContract: string;
   onchainTxHash?: string;
   createdAt: string;
-  completedAt: string;
+  completedAt?: string;
   version: string;
   protocol: string;
   agentId: string;
   x402MeterId: string;
-}
+  metadata?: Record<string, unknown>;
+};
 
-// Result of saving receipt to Arweave
-export interface ArweaveResult {
+export type ArweaveSaveResult = {
   success: boolean;
+  txId?: string;
   url?: string;
-  transactionId?: string;
   error?: string;
-}
+  skipped?: boolean;
+};
 
-// Initialize Arweave client
-// If ARWEAVE_JWK is not configured, Arweave operations will be skipped
-let arweave: Arweave | null = null;
-let arweaveWallet: any = null;
+const arweave = Arweave.init({
+  host: process.env.ARWEAVE_HOST || "arweave.net",
+  port: Number(process.env.ARWEAVE_PORT || 443),
+  protocol: process.env.ARWEAVE_PROTOCOL || "https",
+});
 
-try {
-  const arweaveJwk = process.env.ARWEAVE_JWK;
-  if (arweaveJwk) {
-    arweave = Arweave.init({
-      host: "arweave.net",
-      port: 443,
-      protocol: "https",
-    });
-    arweaveWallet = JSON.parse(arweaveJwk);
-    logger.info("Arweave client initialized");
-  } else {
-    logger.warn("ARWEAVE_JWK not configured - Arweave storage will be skipped");
+let cachedKey: JWKInterface | null = null;
+let keyLoaded = false;
+
+function getArweaveKey(): JWKInterface | null {
+  if (keyLoaded) {
+    return cachedKey;
   }
-} catch (error) {
-  logger.warn("Failed to initialize Arweave client", error);
+
+  keyLoaded = true;
+  const jwkRaw = process.env.ARWEAVE_JWK;
+  if (!jwkRaw) {
+    return null;
+  }
+
+  try {
+    cachedKey = JSON.parse(jwkRaw);
+  } catch (error) {
+    logger.error("Invalid ARWEAVE_JWK JSON", error);
+    cachedKey = null;
+  }
+
+  return cachedKey;
 }
 
-/**
- * Save payroll receipt to Arweave for permanent storage
- * This implements the Memory Layer of the Sovereign Agent Stack
- * 
- * @param receipt - Payroll receipt data to store
- * @returns Result with success status and Arweave URL
- */
+export function isArweaveConfigured(): boolean {
+  return Boolean(getArweaveKey());
+}
+
 export async function saveReceiptToArweave(
-  receipt: PayrollReceipt
-): Promise<ArweaveResult> {
-  // If Arweave is not configured, return a mock result
-  if (!arweave || !arweaveWallet) {
-    logger.warn("Arweave not configured - skipping receipt storage");
+  receipt: PayrollReceipt,
+): Promise<ArweaveSaveResult> {
+  const key = getArweaveKey();
+  if (!key) {
+    logger.warn(
+      "ARWEAVE_JWK not configured - skipping Arweave receipt persistence",
+    );
     return {
       success: false,
-      error: "Arweave not configured",
+      skipped: true,
+      error: "ARWEAVE_JWK not configured",
     };
   }
 
   try {
-    // Create transaction with receipt data
+    const payload = JSON.stringify({
+      type: "snowrail.payroll.receipt",
+      issuedAt: new Date().toISOString(),
+      receipt,
+    });
+
     const transaction = await arweave.createTransaction(
       {
-        data: JSON.stringify(receipt),
+        data: Buffer.from(payload, "utf-8"),
       },
-      arweaveWallet
+      key,
     );
 
-    // Add tags for discoverability
+    transaction.addTag("App-Name", "SnowRail");
     transaction.addTag("Content-Type", "application/json");
     transaction.addTag("Protocol", receipt.protocol);
     transaction.addTag("Agent-Id", receipt.agentId);
-    transaction.addTag("Network", receipt.network);
     transaction.addTag("Payroll-Id", receipt.payrollId);
-    transaction.addTag("Version", receipt.version);
 
-    // Sign transaction
-    await arweave.transactions.sign(transaction, arweaveWallet);
-
-    // Submit transaction
+    await arweave.transactions.sign(transaction, key);
     const response = await arweave.transactions.post(transaction);
 
-    if (response.status === 200 || response.status === 208) {
-      const transactionId = transaction.id;
-      const url = `https://arweave.net/${transactionId}`;
-
-      logger.info(`Receipt saved to Arweave: ${url}`);
-
+    if (response.status === 200 || response.status === 202) {
+      logger.info(`Arweave receipt stored: ${transaction.id}`);
       return {
         success: true,
-        url,
-        transactionId,
-      };
-    } else {
-      logger.error(`Failed to post transaction to Arweave: ${response.statusText}`);
-      return {
-        success: false,
-        error: `Arweave API error: ${response.statusText}`,
+        txId: transaction.id,
+        url: `https://arweave.net/${transaction.id}`,
       };
     }
+
+    logger.error("Arweave responded with unexpected status", response.status);
+    return {
+      success: false,
+      error: `Arweave responded with status ${response.status}`,
+    };
   } catch (error) {
-    logger.error("Error saving receipt to Arweave", error);
+    logger.error("Failed to save receipt to Arweave", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",

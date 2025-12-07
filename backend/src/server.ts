@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type Express } from "express";
 import dotenv from "dotenv";
 import { ExampleService } from "./ExampleService.js";
 import {
@@ -30,7 +30,7 @@ import { registerAgentRoutes } from "./api/agentRoutes.js";
 // Load environment variables
 dotenv.config();
 
-const app = express();
+const app: Express = express();
 app.use(express.json());
 
 const defaultCorsOrigins = [

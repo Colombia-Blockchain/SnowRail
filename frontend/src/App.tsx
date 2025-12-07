@@ -124,10 +124,13 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               <span className="logo-text font-bold text-xl tracking-tight text-slate-900">SnowRail</span>
             </Link>
             <div className="header-meta flex items-center gap-4">
-              <span className="chain-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-sm font-medium text-slate-600">
-                <span className="chain-dot w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                Avalanche C-Chain
-              </span>
+              <div className="flex flex-col items-end gap-2 text-right">
+                <span className="chain-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-sm font-medium text-slate-600">
+                  <span className="chain-dot w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                  Avalanche C-Chain
+                </span>
+                <CoreWalletButton />
+              </div>
               <UserMenu />
             </div>
           </div>

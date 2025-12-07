@@ -3,7 +3,6 @@
  */
 
 import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
-import { CoreWalletButton } from "./components/core-wallet-button.js";
 import { useAuth } from "./hooks/use-auth.js";
 import { ProtectedRoute } from "./components/auth/protected-route.js";
 import { LoginPage } from "./pages/login.js";
@@ -116,7 +115,11 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Header */}
         <header className="header sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-slate-200 shadow-sm">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <Link to="/" className="logo flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" aria-label="SnowRail home">
+            <Link
+              to="/"
+              className="logo flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity no-underline hover:no-underline"
+              aria-label="SnowRail home"
+            >
               <span className="logo-icon text-2xl">❄️</span>
               <span className="logo-text font-bold text-xl tracking-tight text-slate-900">SnowRail</span>
             </Link>

@@ -1,10 +1,10 @@
 // Prisma schema for SnowRail payroll system
-// SQLite in dev; can be swapped to PostgreSQL in production
-// Status fields are stored as String for SQLite compatibility
+// SQLite in dev; PostgreSQL in production
+// Status fields are stored as String for compatibility
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {

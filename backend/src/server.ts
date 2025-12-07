@@ -559,7 +559,7 @@ app.post('/test', async (req, res) => {
   };
 
   try {
-    const response = await fetch(`http://localhost:${PORT}/process`, {
+    const response: globalThis.Response = await fetch(`http://localhost:${PORT}/process`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

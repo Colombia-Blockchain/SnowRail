@@ -8,7 +8,7 @@
     "create-x402": "./cli.js"
   },
   "scripts": {
-    "build": "prisma generate && tsc",
+    "build": "npx prisma generate && npx prisma migrate deploy && tsc",
     "start": "node dist/server.js",
     "dev": "tsc && node dist/server.js",
     "facilitator": "tsc && node dist/facilitator.js",
@@ -16,8 +16,10 @@
     "test": "npm run build && node dist/tests/integration/testClient.js",
     "test:shell": "bash tests/scripts/test-request.sh",
     "clean": "rm -rf dist",
-    "prisma:migrate": "prisma migrate dev --name init",
-    "prisma:generate": "prisma generate"
+    "prisma:migrate": "npx prisma migrate dev --name init",
+    "prisma:migrate:deploy": "npx prisma migrate deploy",
+    "prisma:generate": "npx prisma generate",
+    "postinstall": "npx prisma generate"
   },
   "keywords": [
     "x402",
@@ -37,6 +39,8 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "openai": "^4.78.0",
+    "prisma": "^5.22.0",
+    "typescript": "^5.9.3",
     "x402": "^0.7.0"
   },
   "devDependencies": {
@@ -44,8 +48,6 @@
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/lodash": "^4.17.21",
-    "@types/node": "^24.6.2",
-    "prisma": "^5.22.0",
-    "typescript": "^5.9.3"
+    "@types/node": "^24.6.2"
   }
 }

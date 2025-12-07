@@ -554,7 +554,7 @@ export class MerchantExecutor {
       throw new Error('Facilitator URL is not configured.');
     }
 
-    const response = await fetch(`${this.facilitatorUrl}/${endpoint}`, {
+    const fetchResponse = await fetch(`${this.facilitatorUrl}/${endpoint}`, {
       method: 'POST',
       headers: this.buildHeaders(),
       body: JSON.stringify({
@@ -564,16 +564,16 @@ export class MerchantExecutor {
       }),
     });
 
-    if (!response.ok) {
-      const text = await response.text();
+    if (!fetchResponse.ok) {
+      const text = await fetchResponse.text();
       throw new Error(
-        `Facilitator ${endpoint} failed (${response.status}): ${
-          text || response.statusText
+        `Facilitator ${endpoint} failed (${fetchResponse.status}): ${
+          text || fetchResponse.statusText
         }`
       );
     }
 
-    return (await response.json()) as T;
+    return (await fetchResponse.json()) as T;
   }
 
   private buildEip712Domain(requirements: PaymentRequirements) {

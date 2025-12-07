@@ -6,7 +6,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/use-auth.js";
-import { LogOut, ChevronDown, User } from "lucide-react";
+import { LogOut, ChevronDown, User, Wallet } from "lucide-react";
+import { CoreWalletButton } from "../core-wallet-button.js";
 
 export function UserMenu() {
   const navigate = useNavigate();
@@ -245,6 +246,21 @@ export function UserMenu() {
               >
                 Account active
               </span>
+            </div>
+            <div
+              style={{
+                marginTop: "0.75rem",
+                padding: "0.5rem",
+                backgroundColor: "#ffffff",
+                borderRadius: "0.5rem",
+                border: "1px solid #e5e5e5",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+              }}
+            >
+              <Wallet style={{ width: "0.875rem", height: "0.875rem", color: "#14b8a6" }} />
+              <CoreWalletButton variant="text" />
             </div>
           </div>
 

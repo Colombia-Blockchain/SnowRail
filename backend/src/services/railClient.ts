@@ -5,6 +5,15 @@
 
 import { config } from "../config/env.js";
 
+// Type alias for Fetch API Response to avoid conflict with Express Response
+type FetchResponse = {
+  ok: boolean;
+  status: number;
+  statusText: string;
+  text(): Promise<string>;
+  json(): Promise<any>;
+};
+
 // Types based on Rail OpenAPI spec
 export type RailPaymentInput = {
   payrollId: string;
@@ -123,7 +132,7 @@ export async function getRailAccessToken(): Promise<string> {
         "Cache-Control": "no-cache",
         Authorization: `Basic ${basicAuth}`,
       },
-    })) as globalThis.Response;
+    })) as unknown as FetchResponse;
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -226,7 +235,7 @@ export async function createRailPayment(
         "X-L2f-Request-Id": `snowrail-${Date.now()}`,
       },
       body: JSON.stringify(withdrawalRequest),
-    })) as globalThis.Response;
+    })) as unknown as FetchResponse;
 
     if (!response.ok) {
       let errorMsg = `Rail API error: ${response.status} ${response.statusText}`;
@@ -293,7 +302,7 @@ async function acceptRailWithdrawal(withdrawalId: string): Promise<void> {
       Authorization: `Bearer ${accessToken}`,
       "X-L2f-Request-Id": `snowrail-accept-${Date.now()}`,
     },
-  })) as globalThis.Response;
+  })) as unknown as FetchResponse;
 
   if (!response.ok) {
     const errorData = (await response.json()) as RailError;

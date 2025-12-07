@@ -7,6 +7,15 @@
 import { logger } from "../utils/logger.js";
 import { config } from "../config/env.js";
 
+// Type alias for Fetch API Response to avoid conflict with Express Response
+type FetchResponse = {
+  ok: boolean;
+  status: number;
+  statusText: string;
+  text(): Promise<string>;
+  json(): Promise<any>;
+};
+
 // Cache structure
 interface PriceCache {
   price: number;
@@ -68,7 +77,7 @@ export async function getTokenPrice(token: string): Promise<number> {
       headers: {
         Accept: "application/json",
       },
-    })) as globalThis.Response;
+    })) as unknown as FetchResponse;
 
     if (!response.ok) {
       throw new Error(`CoinGecko API error: ${response.status}`);

@@ -2,6 +2,15 @@ import { config } from "../config/env.js";
 import { logger } from "../utils/logger.js";
 import { getMeter, MeterConfig } from "./metering.js";
 
+// Type alias for Fetch API Response to avoid conflict with Express Response
+type FetchResponse = {
+  ok: boolean;
+  status: number;
+  statusText: string;
+  text(): Promise<string>;
+  json(): Promise<any>;
+};
+
 /**
  * Ultravioleta Facilitator Client
  * Handles communication with the Ultravioleta x402 facilitator
@@ -69,7 +78,7 @@ export async function validateWithFacilitator(
         Accept: "application/json",
       },
       body: JSON.stringify(requestBody),
-    })) as globalThis.Response;
+    })) as unknown as FetchResponse;
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -136,7 +145,7 @@ export async function checkFacilitatorHealth(): Promise<{
       headers: {
         Accept: "application/json",
       },
-    })) as globalThis.Response;
+    })) as unknown as FetchResponse;
 
     return {
       healthy: response.ok,

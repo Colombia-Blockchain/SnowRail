@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Copy, Check, ExternalLink, Shield, Database, Activity, Clock, Users, DollarSign, Archive, TrendingUp, RefreshCw } from "lucide-react";
+import { Sparkles, Copy, Check, ExternalLink, Shield, Database, Activity, Clock, Users, DollarSign, Archive, RefreshCw } from "lucide-react";
 import { getApiBase } from "../utils/api-config.js";
+import { AgentIdentityTabs } from "./AgentIdentityTabs";
 
 interface AgentCapabilities {
   erc8004Version: string;
@@ -108,13 +109,16 @@ export function AgentIdentity() {
   const fetchAll = async () => {
     try {
       setLoading(true);
+      setError(null);
       await Promise.all([
         fetchIdentity(),
         fetchActivity(),
         fetchStats()
       ]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      setError(errorMessage);
+      console.error("Error fetching agent data:", err);
     } finally {
       setLoading(false);
     }
@@ -182,17 +186,26 @@ export function AgentIdentity() {
     );
   }
 
-  if (error || !identity) {
+  if (error) {
     return (
       <div className="card p-8 border-red-200 bg-red-50">
         <h3 className="font-bold text-red-900 mb-2">Failed to Load Data</h3>
-        <p className="text-red-700 text-sm">{error || "Unknown error"}</p>
+        <p className="text-red-700 text-sm">{error}</p>
          <button
            onClick={fetchAll}
            className="mt-4 px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-500 text-white font-medium rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-200 shadow-lg shadow-red-600/30 hover:shadow-xl hover:shadow-red-600/40 hover:scale-105"
          >
            Retry
          </button>
+      </div>
+    );
+  }
+
+  if (!identity) {
+    return (
+      <div className="card p-8 text-center">
+        <div className="w-8 h-8 border-2 border-teal-600/30 border-t-teal-600 rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-teal-700">Loading agent identity...</p>
       </div>
     );
   }
@@ -222,41 +235,7 @@ export function AgentIdentity() {
       </div>
 
        {/* Tabs - Rediseñados */}
-       <div className="flex items-center gap-2 mb-6 bg-gray-100 p-2 rounded-2xl">
-         <button
-           onClick={() => setActiveTab("activity")}
-           className={`flex-1 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2.5 ${
-             activeTab === "activity"
-               ? "bg-teal-500 text-white shadow-lg shadow-teal-500/30"
-               : "text-gray-600 hover:text-gray-900 hover:bg-gray-200/50"
-           }`}
-         >
-           <Archive size={18} />
-           Payroll History
-         </button>
-         <button
-           onClick={() => setActiveTab("identity")}
-           className={`flex-1 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2.5 ${
-             activeTab === "identity"
-               ? "bg-teal-500 text-white shadow-lg shadow-teal-500/30"
-               : "text-gray-600 hover:text-gray-900 hover:bg-gray-200/50"
-           }`}
-         >
-           <Sparkles size={18} />
-           Agent Identity
-         </button>
-         <button
-           onClick={() => setActiveTab("stats")}
-           className={`flex-1 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2.5 ${
-             activeTab === "stats"
-               ? "bg-teal-500 text-white shadow-lg shadow-teal-500/30"
-               : "text-gray-600 hover:text-gray-900 hover:bg-gray-200/50"
-           }`}
-         >
-           <TrendingUp size={18} />
-           Statistics
-         </button>
-       </div>
+       <AgentIdentityTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Stats Summary */}
       {stats && activity && activeTab === "activity" && (
@@ -303,7 +282,7 @@ export function AgentIdentity() {
               <button
                 onClick={fetchAll}
                 disabled={loading}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-white text-teal-700 hover:bg-teal-50 border border-teal-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Refresh data"
               >
                 <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
@@ -342,7 +321,7 @@ export function AgentIdentity() {
                             } else if (status === "FAILED") {
                               return <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-medium">✗ Failed</span>;
                             } else {
-                              return <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 text-xs font-medium">{status}</span>;
+                              return <span className="px-2 py-0.5 rounded bg-teal-100 text-teal-700 text-xs font-medium border border-teal-200">{status}</span>;
                             }
                           })()}
                         </div>
@@ -549,21 +528,26 @@ export function AgentIdentity() {
           <div className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
               {/* Payroll Stats */}
-              <div className="card p-6 border-teal-200">
-                <h3 className="font-bold text-teal-900 mb-4">Payroll Statistics</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span className="text-gray-600">Total Payrolls</span>
-                    <span className="font-bold text-gray-900">{stats.payrolls.total}</span>
+              <div className="card p-6 border-teal-200 bg-gradient-to-br from-white to-teal-50/30">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-teal-100 rounded-lg">
+                    <Activity size={20} className="text-teal-600" />
                   </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span className="text-gray-600">Last 24 Hours</span>
-                    <span className="font-bold text-gray-900">{stats.payrolls.last24h}</span>
+                  <h3 className="font-bold text-teal-900 text-lg">Payroll Statistics</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-3 px-4 rounded-lg bg-white/60 border border-teal-100">
+                    <span className="text-teal-700 font-medium">Total Payrolls</span>
+                    <span className="font-bold text-teal-900 text-lg">{stats.payrolls.total}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 px-4 rounded-lg bg-white/60 border border-teal-100">
+                    <span className="text-teal-700 font-medium">Last 24 Hours</span>
+                    <span className="font-bold text-teal-900 text-lg">{stats.payrolls.last24h}</span>
                   </div>
                   {Object.entries(stats.payrolls.byStatus).map(([status, count]) => (
-                    <div key={status} className="flex justify-between items-center py-2">
-                      <span className="text-gray-600">{status}</span>
-                      <span className={`font-bold ${status === 'PAID' ? 'text-green-600' : 'text-gray-600'}`}>
+                    <div key={status} className="flex justify-between items-center py-3 px-4 rounded-lg bg-white/60 border border-teal-100">
+                      <span className="text-teal-700 font-medium">{status}</span>
+                      <span className={`font-bold text-lg ${status === 'PAID' || status === 'ONCHAIN_PAID' ? 'text-green-600' : status === 'RAIL_PROCESSING' ? 'text-yellow-600' : 'text-teal-900'}`}>
                         {count}
                       </span>
                     </div>
@@ -572,25 +556,30 @@ export function AgentIdentity() {
               </div>
 
               {/* Financial Stats */}
-              <div className="card p-6 border-green-200">
-                <h3 className="font-bold text-green-900 mb-4">Financial Statistics</h3>
+              <div className="card p-6 border-teal-200 bg-gradient-to-br from-white to-teal-50/30">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-teal-100 rounded-lg">
+                    <DollarSign size={20} className="text-teal-600" />
+                  </div>
+                  <h3 className="font-bold text-teal-900 text-lg">Financial Statistics</h3>
+                </div>
                 <div className="space-y-4">
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Total Paid Out</div>
-                    <div className="text-3xl font-bold text-green-600">
+                  <div className="p-4 rounded-lg bg-white/60 border border-teal-100">
+                    <div className="text-sm text-teal-700 font-medium mb-2">Total Paid Out</div>
+                    <div className="text-2xl font-bold text-teal-900">
                       {formatAmount(stats.amounts.totalPaid)}
                     </div>
-                    <div className="text-xs text-gray-500">{stats.amounts.currency}</div>
+                    <div className="text-xs text-teal-600 mt-1">{stats.amounts.currency}</div>
                   </div>
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">Currently Processing</div>
-                    <div className="text-2xl font-bold text-orange-600">
+                  <div className="p-4 rounded-lg bg-white/60 border border-teal-100">
+                    <div className="text-sm text-teal-700 font-medium mb-2">Currently Processing</div>
+                    <div className="text-2xl font-bold text-yellow-600">
                       {formatAmount(stats.amounts.totalProcessing)}
                     </div>
                   </div>
-                  <div className="pt-3 border-t border-gray-200">
-                    <div className="text-sm text-gray-600 mb-1">Total Recipients</div>
-                    <div className="text-2xl font-bold text-blue-600">
+                  <div className="p-4 rounded-lg bg-white/60 border border-teal-100">
+                    <div className="text-sm text-teal-700 font-medium mb-2">Total Recipients</div>
+                    <div className="text-2xl font-bold text-teal-900">
                       {stats.recipients.total}
                     </div>
                   </div>
@@ -599,19 +588,24 @@ export function AgentIdentity() {
             </div>
 
             {/* System Stats */}
-            <div className="card p-6 border-gray-200">
-              <h3 className="font-bold text-gray-900 mb-4">System Information</h3>
+            <div className="card p-6 border-teal-200 bg-gradient-to-br from-white to-teal-50/30">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-teal-100 rounded-lg">
+                  <Clock size={20} className="text-teal-600" />
+                </div>
+                <h3 className="font-bold text-teal-900 text-lg">System Information</h3>
+              </div>
               <div className="grid md:grid-cols-3 gap-4">
-                <div>
-                  <div className="text-sm text-gray-600 mb-1">Uptime</div>
-                  <div className="text-xl font-bold text-gray-900">{formatUptime(stats.uptime)}</div>
+                <div className="p-4 rounded-lg bg-white/60 border border-teal-100">
+                  <div className="text-sm text-teal-700 font-medium mb-2">Uptime</div>
+                  <div className="text-xl font-bold text-teal-900">{formatUptime(stats.uptime)}</div>
                 </div>
-                <div>
-                  <div className="text-sm text-gray-600 mb-1">Last Updated</div>
-                  <div className="text-sm font-medium text-gray-900">{formatDate(stats.timestamp)}</div>
+                <div className="p-4 rounded-lg bg-white/60 border border-teal-100">
+                  <div className="text-sm text-teal-700 font-medium mb-2">Last Updated</div>
+                  <div className="text-sm font-medium text-teal-900">{formatDate(stats.timestamp)}</div>
                 </div>
-                <div>
-                  <div className="text-sm text-gray-600 mb-1">Status</div>
+                <div className="p-4 rounded-lg bg-white/60 border border-teal-100">
+                  <div className="text-sm text-teal-700 font-medium mb-2">Status</div>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     <span className="text-sm font-medium text-green-600">Online</span>

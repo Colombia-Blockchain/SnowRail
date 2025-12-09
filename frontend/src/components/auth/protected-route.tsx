@@ -19,10 +19,10 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-navy-900">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-teal-200 border-t-teal-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-teal-700">Loading...</p>
+          <div className="w-8 h-8 border-4 border-electric-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-electric-blue">Loading...</p>
         </div>
       </div>
     );

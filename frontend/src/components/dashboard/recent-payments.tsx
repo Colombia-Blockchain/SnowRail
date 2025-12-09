@@ -55,6 +55,59 @@ function truncateHash(hash: string | null, length: number = 8): string {
   return `${hash.substring(0, length + 2)}...${hash.substring(hash.length - length)}`;
 }
 
+/**
+ * Normalize transaction hash to standard format
+ * Tries to fix common issues with hashes
+ */
+function normalizeHash(hash: string | null): string | null {
+  if (!hash) return null;
+  
+  // Remove whitespace
+  let cleaned = hash.trim();
+  
+  // If it doesn't start with 0x, add it
+  if (!cleaned.startsWith('0x')) {
+    cleaned = `0x${cleaned}`;
+  }
+  
+  // Remove 0x prefix to work with the hex part
+  const hexPart = cleaned.substring(2);
+  
+  // Remove any non-hex characters (just in case)
+  const hexOnly = hexPart.replace(/[^0-9a-fA-F]/g, '');
+  
+  if (hexOnly.length === 0) return null;
+  
+  // If it's shorter than 64 chars, pad with zeros at the end
+  if (hexOnly.length < 64) {
+    const padded = hexOnly.padEnd(64, '0');
+    return `0x${padded}`;
+  }
+  
+  // If it's exactly 64, return with 0x
+  if (hexOnly.length === 64) {
+    return `0x${hexOnly}`;
+  }
+  
+  // If it's longer, truncate to 64 chars (take first 64)
+  if (hexOnly.length > 64) {
+    return `0x${hexOnly.substring(0, 64)}`;
+  }
+  
+  return `0x${hexOnly}`;
+}
+
+/**
+ * Check if hash looks valid (has 0x prefix and reasonable length)
+ */
+function isLikelyValidHash(hash: string | null): boolean {
+  if (!hash) return false;
+  const normalized = normalizeHash(hash);
+  if (!normalized) return false;
+  // Accept if it has 0x prefix and at least 10 hex chars (very permissive)
+  return normalized.startsWith('0x') && normalized.length >= 12;
+}
+
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
   return date.toLocaleString("en-US", {
@@ -133,15 +186,52 @@ export function RecentPayments({ payments }: RecentPaymentsProps) {
                 </td>
                 <td className="py-3 px-2">
                   {payment.txHash ? (
-                    <a
-                      href={`https://testnet.snowtrace.io/tx/${payment.txHash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-teal-600 hover:text-teal-800 font-mono"
-                    >
-                      {truncateHash(payment.txHash)}
-                      <ExternalLink size={12} />
-                    </a>
+                    (() => {
+                      // Normalize the hash first
+                      const normalizedHash = normalizeHash(payment.txHash);
+                      const isValid = normalizedHash && normalizedHash.length === 66;
+                      const isLikelyValid = isLikelyValidHash(payment.txHash);
+                      
+                      // Use normalized hash if available, otherwise use original
+                      const hashToUse = normalizedHash || payment.txHash;
+                      
+                      if (isValid) {
+                        // Perfect hash - show in teal
+                        return (
+                          <a
+                            href={`https://testnet.snowtrace.io/tx/${hashToUse}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-teal-600 hover:text-teal-800 font-mono hover:underline"
+                            title={`View transaction: ${hashToUse}`}
+                          >
+                            {truncateHash(hashToUse)}
+                            <ExternalLink size={12} />
+                          </a>
+                        );
+                      } else if (isLikelyValid) {
+                        // Likely valid but not perfect - show in amber, still make it clickable
+                        return (
+                          <a
+                            href={`https://testnet.snowtrace.io/tx/${hashToUse}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-amber-600 hover:text-amber-800 font-mono hover:underline"
+                            title={`View transaction: ${hashToUse}${normalizedHash !== payment.txHash ? ` (normalized from ${payment.txHash})` : ''}`}
+                          >
+                            {truncateHash(hashToUse)}
+                            <ExternalLink size={12} />
+                          </a>
+                        );
+                      } else {
+                        // Invalid hash - show as text only
+                        return (
+                          <span className="text-xs text-gray-500 font-mono" title={`Hash: ${payment.txHash}`}>
+                            {truncateHash(payment.txHash)}
+                          </span>
+                        );
+                      }
+                    })()
                   ) : (
                     <span className="text-xs text-teal-400">-</span>
                   )}

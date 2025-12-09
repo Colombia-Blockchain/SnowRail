@@ -5,6 +5,8 @@
 
 import { ExternalLink, Clock, CheckCircle2, XCircle } from "lucide-react";
 import type { RecentPayment } from "../../types/dashboard-types.js";
+import { SpotlightCard } from "../ui/spotlight-card";
+import { motion } from "framer-motion";
 
 type RecentPaymentsProps = {
   payments: RecentPayment[];
@@ -13,13 +15,13 @@ type RecentPaymentsProps = {
 function getStatusIcon(status: RecentPayment["status"]) {
   switch (status) {
     case "CONFIRMED_ONCHAIN":
-      return <CheckCircle2 size={16} className="text-green-600" />;
+      return <CheckCircle2 size={16} className="text-green-500" />;
     case "PENDING_X402":
-      return <Clock size={16} className="text-yellow-600" />;
+      return <Clock size={16} className="text-yellow-500" />;
     case "FAILED":
-      return <XCircle size={16} className="text-red-600" />;
+      return <XCircle size={16} className="text-red-500" />;
     default:
-      return <Clock size={16} className="text-gray-600" />;
+      return <Clock size={16} className="text-gray-500" />;
   }
 }
 
@@ -39,13 +41,13 @@ function getStatusLabel(status: RecentPayment["status"]) {
 function getStatusColor(status: RecentPayment["status"]) {
   switch (status) {
     case "CONFIRMED_ONCHAIN":
-      return "text-green-700 bg-green-50 border-green-200";
+      return "text-green-400 bg-green-500/10 border-green-500/20";
     case "PENDING_X402":
-      return "text-yellow-700 bg-yellow-50 border-yellow-200";
+      return "text-yellow-400 bg-yellow-500/10 border-yellow-500/20";
     case "FAILED":
-      return "text-red-700 bg-red-50 border-red-200";
+      return "text-red-400 bg-red-500/10 border-red-500/20";
     default:
-      return "text-gray-700 bg-gray-50 border-gray-200";
+      return "text-gray-400 bg-white/5 border-white/10";
   }
 }
 
@@ -57,39 +59,30 @@ function truncateHash(hash: string | null, length: number = 8): string {
 
 /**
  * Normalize transaction hash to standard format
- * Tries to fix common issues with hashes
  */
 function normalizeHash(hash: string | null): string | null {
   if (!hash) return null;
   
-  // Remove whitespace
   let cleaned = hash.trim();
   
-  // If it doesn't start with 0x, add it
   if (!cleaned.startsWith('0x')) {
     cleaned = `0x${cleaned}`;
   }
   
-  // Remove 0x prefix to work with the hex part
   const hexPart = cleaned.substring(2);
-  
-  // Remove any non-hex characters (just in case)
   const hexOnly = hexPart.replace(/[^0-9a-fA-F]/g, '');
   
   if (hexOnly.length === 0) return null;
   
-  // If it's shorter than 64 chars, pad with zeros at the end
   if (hexOnly.length < 64) {
     const padded = hexOnly.padEnd(64, '0');
     return `0x${padded}`;
   }
   
-  // If it's exactly 64, return with 0x
   if (hexOnly.length === 64) {
     return `0x${hexOnly}`;
   }
   
-  // If it's longer, truncate to 64 chars (take first 64)
   if (hexOnly.length > 64) {
     return `0x${hexOnly.substring(0, 64)}`;
   }
@@ -98,13 +91,12 @@ function normalizeHash(hash: string | null): string | null {
 }
 
 /**
- * Check if hash looks valid (has 0x prefix and reasonable length)
+ * Check if hash looks valid
  */
 function isLikelyValidHash(hash: string | null): boolean {
   if (!hash) return false;
   const normalized = normalizeHash(hash);
   if (!normalized) return false;
-  // Accept if it has 0x prefix and at least 10 hex chars (very permissive)
   return normalized.startsWith('0x') && normalized.length >= 12;
 }
 
@@ -122,56 +114,80 @@ function formatDate(dateString: string): string {
 export function RecentPayments({ payments }: RecentPaymentsProps) {
   if (payments.length === 0) {
     return (
-      <div className="card p-8">
-        <h3 className="text-lg font-semibold text-teal-900 mb-4">Recent Payments</h3>
-        <div className="text-center py-8 text-teal-600">
+      <SpotlightCard className="p-8 bg-navy-800/30">
+        <h3 className="text-lg font-semibold text-white mb-4">Recent Payments</h3>
+        <div className="text-center py-8 text-gray-500">
           <p className="text-sm">No payments received yet</p>
           <p className="text-xs mt-1">Payments will appear here once received</p>
         </div>
-      </div>
+      </SpotlightCard>
     );
   }
 
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, x: -10 },
+    show: { opacity: 1, x: 0 }
+  };
+
   return (
-    <div className="card p-8">
-      <h3 className="text-lg font-semibold text-teal-900 mb-6">Recent Payments</h3>
+    <SpotlightCard className="p-8 bg-navy-800/30">
+      <h3 className="text-lg font-semibold text-white mb-6">Recent Payments</h3>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-teal-200">
-              <th className="text-left py-3 px-2 text-xs font-semibold text-teal-700 uppercase tracking-wider">
+            <tr className="border-b border-white/10">
+              <th className="text-left py-3 px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                 Date
               </th>
-              <th className="text-left py-3 px-2 text-xs font-semibold text-teal-700 uppercase tracking-wider">
+              <th className="text-left py-3 px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                 Token
               </th>
-              <th className="text-right py-3 px-2 text-xs font-semibold text-teal-700 uppercase tracking-wider">
+              <th className="text-right py-3 px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                 Amount
               </th>
-              <th className="text-right py-3 px-2 text-xs font-semibold text-teal-700 uppercase tracking-wider">
+              <th className="text-right py-3 px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                 USD
               </th>
-              <th className="text-left py-3 px-2 text-xs font-semibold text-teal-700 uppercase tracking-wider">
+              <th className="text-left py-3 px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                 Status
               </th>
-              <th className="text-left py-3 px-2 text-xs font-semibold text-teal-700 uppercase tracking-wider">
+              <th className="text-left py-3 px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                 Transaction
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-teal-100">
+          <motion.tbody 
+            variants={container}
+            initial="hidden"
+            whileInView="show"
+            className="divide-y divide-white/5"
+          >
             {payments.map((payment) => (
-              <tr key={payment.id} className="hover:bg-teal-50 transition-colors">
-                <td className="py-3 px-2 text-sm text-teal-900">
+              <motion.tr 
+                key={payment.id} 
+                variants={item}
+                className="hover:bg-white/5 transition-colors group"
+              >
+                <td className="py-3 px-2 text-sm text-gray-300">
                   {formatDate(payment.createdAt)}
                 </td>
-                <td className="py-3 px-2 text-sm font-medium text-teal-900">
+                <td className="py-3 px-2 text-sm font-medium text-white">
                   {payment.token}
                 </td>
-                <td className="py-3 px-2 text-sm text-teal-900 text-right">
+                <td className="py-3 px-2 text-sm text-gray-300 text-right">
                   {payment.amountToken.toFixed(6)}
                 </td>
-                <td className="py-3 px-2 text-sm font-semibold text-teal-900 text-right">
+                <td className="py-3 px-2 text-sm font-semibold text-white text-right">
                   ${payment.amountUsd.toFixed(2)}
                 </td>
                 <td className="py-3 px-2">
@@ -196,13 +212,12 @@ export function RecentPayments({ payments }: RecentPaymentsProps) {
                       const hashToUse = normalizedHash || payment.txHash;
                       
                       if (isValid) {
-                        // Perfect hash - show in teal
                         return (
                           <a
                             href={`https://testnet.snowtrace.io/tx/${hashToUse}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-teal-600 hover:text-teal-800 font-mono hover:underline"
+                            className="inline-flex items-center gap-1 text-xs text-electric-blue hover:text-white font-mono hover:underline transition-colors"
                             title={`View transaction: ${hashToUse}`}
                           >
                             {truncateHash(hashToUse)}
@@ -210,13 +225,12 @@ export function RecentPayments({ payments }: RecentPaymentsProps) {
                           </a>
                         );
                       } else if (isLikelyValid) {
-                        // Likely valid but not perfect - show in amber, still make it clickable
                         return (
                           <a
                             href={`https://testnet.snowtrace.io/tx/${hashToUse}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-amber-600 hover:text-amber-800 font-mono hover:underline"
+                            className="inline-flex items-center gap-1 text-xs text-yellow-500 hover:text-yellow-300 font-mono hover:underline transition-colors"
                             title={`View transaction: ${hashToUse}${normalizedHash !== payment.txHash ? ` (normalized from ${payment.txHash})` : ''}`}
                           >
                             {truncateHash(hashToUse)}
@@ -224,7 +238,6 @@ export function RecentPayments({ payments }: RecentPaymentsProps) {
                           </a>
                         );
                       } else {
-                        // Invalid hash - show as text only
                         return (
                           <span className="text-xs text-gray-500 font-mono" title={`Hash: ${payment.txHash}`}>
                             {truncateHash(payment.txHash)}
@@ -233,16 +246,14 @@ export function RecentPayments({ payments }: RecentPaymentsProps) {
                       }
                     })()
                   ) : (
-                    <span className="text-xs text-teal-400">-</span>
+                    <span className="text-xs text-gray-600">-</span>
                   )}
                 </td>
-              </tr>
+              </motion.tr>
             ))}
-          </tbody>
+          </motion.tbody>
         </table>
       </div>
-    </div>
+    </SpotlightCard>
   );
 }
-
-

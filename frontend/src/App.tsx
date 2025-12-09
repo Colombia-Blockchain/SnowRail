@@ -3,7 +3,7 @@
  */
 
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useNavigate } from "react-router-dom";
-import { useState, Suspense } from "react";
+import { useState } from "react";
 import { useAuth } from "./hooks/use-auth.js";
 import { ProtectedRoute } from "./components/auth/protected-route.js";
 import { LoginPage } from "./pages/login.js";

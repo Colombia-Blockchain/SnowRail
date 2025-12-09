@@ -4,7 +4,7 @@
  */
 
 import { useState } from "react";
-import { Mail, Lock, AlertCircle, Eye, EyeOff, Snowflake } from "lucide-react";
+import { Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
 import type { LoginRequest } from "../../types/auth-types.js";
 import { motion } from "framer-motion";
 import { SpotlightCard } from "../ui/spotlight-card";

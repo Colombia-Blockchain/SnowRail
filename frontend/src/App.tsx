@@ -155,7 +155,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       <ParticleBackground />
       <div className="app min-h-screen text-slate-900 font-sans">
         {/* Header */}
-        <header className="header sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-slate-200 shadow-sm">
+        <header className="header sticky top-0 z-50 backdrop-blur-lg bg-gradient-to-r from-teal-50/95 via-white/95 to-teal-50/95 border-b border-teal-200/50 shadow-sm">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
               {showBackButton && (
@@ -165,15 +165,15 @@ function AppLayout({ children }: { children: React.ReactNode }) {
               )}
               <Link
                 to="/"
-                className="logo flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity no-underline hover:no-underline"
+                className="logo flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity no-underline hover:no-underline group"
                 aria-label="SnowRail home"
               >
-                <span className="logo-icon text-2xl">❄️</span>
-                <span className="logo-text font-bold text-xl tracking-tight text-slate-900">SnowRail</span>
+                <span className="logo-icon text-2xl group-hover:scale-110 transition-transform">❄️</span>
+                <span className="logo-text font-bold text-xl tracking-tight text-teal-900">SnowRail</span>
               </Link>
             </div>
-            <div className="header-meta flex items-center gap-4">
-              <span className="chain-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-sm font-medium text-slate-600">
+            <div className="header-meta flex items-center gap-3">
+              <span className="chain-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-100/80 border border-teal-200 text-sm font-medium text-teal-700 hover:bg-teal-100 transition-colors">
                 <span className="chain-dot w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                 Avalanche C-Chain
               </span>

@@ -16,7 +16,7 @@ export function CoreWalletButton({
   variant = 'default',
   showDisconnect = false,
 }: CoreWalletButtonProps = {}) {
-  const { account, status, error, isConnected, isConnecting, connectWallet, disconnectWallet } = useCoreWallet()
+  const { account, error, isConnected, isConnecting, connectWallet, disconnectWallet } = useCoreWallet()
 
   const handleClick = () => {
     if (isConnected && account) {

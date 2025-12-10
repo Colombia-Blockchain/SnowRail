@@ -5,6 +5,7 @@
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "./hooks/use-auth.js";
+import { CoreWalletProvider } from "./hooks/use-core-wallet.js";
 import { ProtectedRoute } from "./components/auth/protected-route.js";
 import { LoginPage } from "./pages/login.js";
 import { SignupPage } from "./pages/signup.js";
@@ -215,7 +216,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <CoreWalletProvider>
+        <AppRoutes />
+      </CoreWalletProvider>
     </BrowserRouter>
   );
 }

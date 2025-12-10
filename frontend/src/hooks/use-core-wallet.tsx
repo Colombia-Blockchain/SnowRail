@@ -1,12 +1,24 @@
 /**
- * Hook to manage Core Wallet connection state
- * Provides centralized wallet state management
+ * Context and Hook to manage Core Wallet connection state globally
+ * Provides centralized wallet state management shared across components
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, createContext, useContext, ReactNode } from 'react';
 import type { CoreWalletProvider } from '../types/core-wallet';
 
 type WalletStatus = 'idle' | 'connecting' | 'connected' | 'error';
+
+interface CoreWalletContextType {
+  account: string | null;
+  status: WalletStatus;
+  error: string | null;
+  isConnected: boolean;
+  isConnecting: boolean;
+  connectWallet: () => Promise<void>;
+  disconnectWallet: () => void;
+}
+
+const CoreWalletContext = createContext<CoreWalletContextType | undefined>(undefined);
 
 const getProvider = (): CoreWalletProvider | null => {
   if (typeof window === 'undefined') {
@@ -15,7 +27,7 @@ const getProvider = (): CoreWalletProvider | null => {
   return window.avalanche ?? window.core ?? null;
 };
 
-export function useCoreWallet() {
+export function CoreWalletProvider({ children }: { children: ReactNode }) {
   const [provider, setProvider] = useState<CoreWalletProvider | null>(null);
   const [account, setAccount] = useState<string | null>(null);
   const [status, setStatus] = useState<WalletStatus>('idle');
@@ -81,6 +93,7 @@ export function useCoreWallet() {
   }, [provider, manuallyDisconnected]);
 
   // Helper to check current accounts
+  /*
   const checkAccounts = useCallback(async () => {
     if (!provider || manuallyDisconnected) return;
     
@@ -103,6 +116,7 @@ export function useCoreWallet() {
       }
     }
   }, [provider, manuallyDisconnected]);
+  */
 
   // Connect wallet
   const connectWallet = useCallback(async () => {
@@ -139,7 +153,7 @@ export function useCoreWallet() {
       );
       setAccount(null);
     }
-  }, [provider, checkAccounts]);
+  }, [provider]);
 
   // Disconnect wallet
   const disconnectWallet = useCallback(() => {
@@ -151,7 +165,7 @@ export function useCoreWallet() {
     setError(null);
   }, []);
 
-  return {
+  const value = {
     account,
     status,
     error,
@@ -160,4 +174,18 @@ export function useCoreWallet() {
     connectWallet,
     disconnectWallet,
   };
+
+  return (
+    <CoreWalletContext.Provider value={value}>
+      {children}
+    </CoreWalletContext.Provider>
+  );
+}
+
+export function useCoreWallet() {
+  const context = useContext(CoreWalletContext);
+  if (context === undefined) {
+    throw new Error('useCoreWallet must be used within a CoreWalletProvider');
+  }
+  return context;
 }

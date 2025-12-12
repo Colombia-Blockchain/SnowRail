@@ -332,6 +332,46 @@ npm run test:integration
 
 ---
 
+## Roadmap: x402 V2 Integration
+
+SnowRail is actively pursuing integration with **x402hz** and **x402 V2** (released December 10, 2025), which open three transformative dimensions for payment orchestration.
+
+### Transport-Agnostic Payments (x402hz)
+
+x402 separates three layers that operate independently:
+
+| Layer | Description |
+|-------|-------------|
+| **Authorization** | EIP-3009 offline cryptographic signature (65 bytes) |
+| **Transport** | HTTP, sound (2400Hz), QR, NFC, Bluetooth, light, radio - anything that carries 138 bytes |
+| **Settlement** | On-chain via relayer when connectivity is available |
+
+**Use Cases for SnowRail:**
+
+- **Rural LATAM Payroll**: SMEs in low-connectivity zones can sign payment authorizations offline and transmit via sound/Bluetooth/QR. SnowRail settles on Avalanche when connection is available.
+- **IoT/Agent Micropayments**: AI agents negotiate payments via NFC/Bluetooth with sub-second latency, settling on-chain asynchronously.
+
+### Multi-Chain & Modular Architecture (x402 V2)
+
+| Feature | Benefit for SnowRail |
+|---------|----------------------|
+| **Multi-chain native** | Accept USDC on Avalanche + Base + Solana automatically |
+| **Legacy rails compatibility** | Dynamic routing to ACH, SEPA, cards via facilitators |
+| **Dynamic payTo routing** | Conditional payment flows (freelancers → Account A, vendors → Account B) |
+| **Extensions framework** | Add chains/assets as plugins without protocol forks |
+
+### Case Study Partnership
+
+We are actively pursuing outreach with the x402 team to position SnowRail as an **official case study** for x402 V2:
+
+- **Real-world B2B + LATAM remittances** proving V2 works beyond demos
+- **Unified Payment Interface** and **Fiat Support** validation
+- Open to sharing implementation details for co-publication
+
+**Track our progress:** [GitHub Issue #770](https://github.com/coinbase/x402/issues/770)
+
+---
+
 ## Contributing
 
 We welcome contributions! Please:
